@@ -9,6 +9,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 
 class MainActivity : Activity() {
+    private companion object {
+        const val APP_ASSET_HOST = "appassets.androidplatform.net"
+    }
+
     private lateinit var webView: WebView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +29,13 @@ class MainActivity : Activity() {
             settings.allowContentAccess = false
             settings.javaScriptCanOpenWindowsAutomatically = false
             webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(
+                    view: WebView,
+                    request: android.webkit.WebResourceRequest
+                ): Boolean {
+                    return request.url.host != APP_ASSET_HOST
+                }
+
                 override fun shouldInterceptRequest(
                     view: WebView,
                     request: android.webkit.WebResourceRequest
