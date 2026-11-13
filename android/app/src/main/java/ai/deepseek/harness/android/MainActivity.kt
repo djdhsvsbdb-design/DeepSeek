@@ -33,13 +33,23 @@ class MainActivity : Activity() {
                     view: WebView,
                     request: android.webkit.WebResourceRequest
                 ): Boolean {
-                    return request.url.host != APP_ASSET_HOST
+                    return request.url.scheme != "https" || request.url.host != APP_ASSET_HOST
                 }
 
                 override fun shouldInterceptRequest(
                     view: WebView,
                     request: android.webkit.WebResourceRequest
                 ): android.webkit.WebResourceResponse? {
+                    if (request.url.scheme != "https" || request.url.host != APP_ASSET_HOST) {
+                        return android.webkit.WebResourceResponse(
+                            "text/plain",
+                            "UTF-8",
+                            403,
+                            "Forbidden",
+                            emptyMap(),
+                            "External resource blocked"
+                        )
+                    }
                     return assetLoader.shouldInterceptRequest(request.url)
                 }
             }
