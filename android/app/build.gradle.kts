@@ -12,7 +12,7 @@ val buildWebFrontend by tasks.registering(Exec::class) {
     group = "deepseek"
     description = "Builds the existing React web client for the Android WebView."
     workingDir = repositoryRoot
-    commandLine("pnpm", "--filter", "@deepseek-ai/dsh-web-frontend", "run", "build")
+    commandLine("pnpm", "--filter", "@deepseek-ai/dsh-web-frontend", "exec", "vite", "build", "--base=./")
 }
 
 val syncWebAssets by tasks.registering(Sync::class) {
@@ -45,6 +45,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+dependencies {
+    implementation("androidx.webkit:webkit:1.12.1")
 }
 
 tasks.named("preBuild").configure {
