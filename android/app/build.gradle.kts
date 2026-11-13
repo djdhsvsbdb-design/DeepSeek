@@ -1,26 +1,6 @@
-import org.gradle.api.tasks.Exec
-import org.gradle.api.tasks.Sync
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-}
-
-val repositoryRoot = rootProject.projectDir.parentFile
-
-val buildWebFrontend by tasks.registering(Exec::class) {
-    group = "deepseek"
-    description = "Builds the existing React web client for the Android WebView."
-    workingDir = repositoryRoot
-    commandLine("pnpm", "--filter", "@deepseek-ai/dsh-web-frontend", "exec", "vite", "build", "--base=./")
-}
-
-val syncWebAssets by tasks.registering(Sync::class) {
-    group = "deepseek"
-    description = "Copies the built web client into Android application assets."
-    dependsOn(buildWebFrontend)
-    from(repositoryRoot.resolve("apps/web/dist"))
-    into(layout.buildDirectory.dir("generated/web-assets/web"))
 }
 
 android {
@@ -35,7 +15,10 @@ android {
         versionName = "0.1.0"
     }
 
-    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/web-assets"))
+    buildFeatures {
+        // MainActivity reports the installed app version through the JS bridge.
+        buildConfig = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -49,8 +32,4 @@ android {
 
 dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
-}
-
-tasks.named("preBuild").configure {
-    dependsOn(syncWebAssets)
 }
