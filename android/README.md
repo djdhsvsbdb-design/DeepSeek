@@ -5,21 +5,21 @@ This directory starts the native Android application track. It is intentionally 
 ## Current status
 
 - Native Android application shell: added (Kotlin Activity + WebView).
-- Existing React client: build-and-copy task wired into the Android Gradle build.
+- Android WebView navigation and subresource requests: restricted to the app asset origin.
 - Android-specific Harness runtime: **not implemented yet**.
 - Agent execution, local tools, plugin lifecycle, terminal/process support, secure filesystem access, and session persistence: still need Android implementations or explicitly supported alternatives.
+- The existing React client is **not bundled** yet: it requires a Host boot graph, module loader, injections, and RPC/stream transport that this Android shell does not provide.
 
-The existing Web entry expects a boot manifest and a running Harness host. The Android shell does not pretend that a WebView alone supplies that host. The current build wiring is the UI integration starting point; runtime integration is the next required milestone.
+The shell deliberately shows a setup page instead of loading a client that cannot boot. This avoids presenting a blank or broken UI as a working application.
 
 ## Build
 
-Requirements: Android Studio with Android SDK 35, JDK 17, Node.js and pnpm versions matching the repository root.
+Requirements: Android Studio with Android SDK 35 and JDK 17.
 
-1. From the repository root, install workspace dependencies with the repository's documented pnpm workflow.
-2. Open this directory in Android Studio.
-3. Build the `:app` debug variant. The Gradle pre-build task builds `apps/web` and copies its output into the app assets.
+1. Open this directory in Android Studio.
+2. Build the `:app` debug variant.
 
-The first build may need internet access to resolve Gradle and pnpm dependencies.
+The Android shell build is independent of the repository's pnpm workspace. The project does not yet include a Gradle wrapper; Android Studio can import the Gradle project using an installed compatible Gradle distribution.
 
 ## Android port plan
 
