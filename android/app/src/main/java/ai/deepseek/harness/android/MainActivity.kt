@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
+import androidx.webkit.WebViewAssetLoader
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
@@ -13,13 +14,24 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val assetLoader = WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
         webView = WebView(this).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
             settings.allowContentAccess = false
             settings.javaScriptCanOpenWindowsAutomatically = false
-            webViewClient = WebViewClient()
+            webViewClient = object : WebViewClient() {
+                override fun shouldInterceptRequest(
+                    view: WebView,
+                    request: android.webkit.WebResourceRequest
+                ): android.webkit.WebResourceResponse? {
+                    return assetLoader.shouldInterceptRequest(request.url)
+                }
+            }
             webChromeClient = WebChromeClient()
             addJavascriptInterface(AndroidBridge(), "dshAndroid")
         }
@@ -27,7 +39,7 @@ class MainActivity : Activity() {
 
         val hasBuiltClient = assets.list("web")?.contains("index.html") == true
         if (hasBuiltClient) {
-            webView.loadUrl("file:///android_asset/web/index.html")
+            webView.loadUrl("https://appassets.androidplatform.net/assets/web/index.html")
         } else {
             webView.loadDataWithBaseURL(
                 "https://appassets.androidplatform.net/",
