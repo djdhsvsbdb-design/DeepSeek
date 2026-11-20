@@ -8,11 +8,10 @@
  */
 import { reduceContinuation, initialContinuationState } from './android-continuation.mjs';
 
-const TERMINAL = new Set(['stop', 'length', 'tool_calls']);
 const DEFAULT_MAX_STEPS = 32;
 
 export class AndroidAgentCore {
-  #sessions; #model; #tools; #maxSteps; #agents = new Map();
+  #sessions; #model; #tools; #maxSteps; #agents = new Map(); #controllers = new Map();
 
   constructor({ sessions, model, tools, maxSteps = DEFAULT_MAX_STEPS, onEvent = () => {} }) {
     if (!sessions?.append || !sessions?.open) throw new TypeError('sessions adapter must implement open() and append()');
@@ -33,6 +32,7 @@ export class AndroidAgentCore {
     const abort = () => controller.abort(signal?.reason);
     signal?.addEventListener('abort', abort, { once: true });
     const activeSignal = controller.signal;
+    this.#controllers.set(sessionId, controller);
     let continuation = initialContinuationState();
     try {
       activeSignal.throwIfAborted();
@@ -43,10 +43,10 @@ export class AndroidAgentCore {
         data: { source: { kind: 'user' }, content: text },
       });
       continuation = reduceContinuation(continuation, user);
+      await this.#sessions.append(sessionId, { type: 'turn/start', data: {} });
       this.onEvent({ type: 'turn/start', sessionId });
-      const messages = this.#history(session.events).concat([{ role: 'user', content: text }]);
-      let finalMessage = null;
-      for (let step = 0; step < this.#maxSteps; step++) {
+      const messages = this.#history(session.events);
+            for (let step = 0; step < this.#maxSteps; step++) {
         activeSignal.throwIfAborted();
         await this.#sessions.append(sessionId, { type: 'step/start', data: { step } });
         await this.#sessions.append(sessionId, { type: 'assistant/attempt', data: { step, status: 'started' } });
@@ -104,7 +104,6 @@ export class AndroidAgentCore {
           data: { source: { kind: 'assistant' }, content: answer, finishReason: result?.finishReason ?? 'stop' },
         });
         continuation = reduceContinuation(continuation, assistant);
-        finalMessage = answer;
         await this.#sessions.append(sessionId, {
           type: 'turn/end', data: { reason: { kind: 'success' } },
         });
@@ -115,6 +114,7 @@ export class AndroidAgentCore {
     } finally {
       signal?.removeEventListener('abort', abort);
       if (this.#agents.get(sessionId) === token) this.#agents.delete(sessionId);
+      if (this.#controllers.get(sessionId) === controller) this.#controllers.delete(sessionId);
     }
   }
 
@@ -128,7 +128,9 @@ export class AndroidAgentCore {
 
   cancel(sessionId, reason = 'Cancelled') {
     if (!this.#agents.has(sessionId)) return false;
-    // Active turn cancellation is driven by the AbortSignal supplied to run().
+    const controller = this.#controllers.get(sessionId);
+    if (!controller) return false;
+    controller.abort(new Error(reason));
     this.onEvent({ type: 'turn/cancel-requested', sessionId, reason });
     return true;
   }
