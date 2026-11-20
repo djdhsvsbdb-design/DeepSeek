@@ -1,0 +1,55 @@
+name: Android Node Runtime
+
+on:
+  push:
+    branches: [android-runtime-port]
+    paths:
+      - ".github/workflows/android-node-runtime.yml"
+      - "android/**"
+      - "ANDROID_PORT.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-node-android-arm64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential git gcc-multilib g++-multilib
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Python build helper
+        run: python -m pip install setuptools
+      - uses: android-actions/setup-android@v3
+      - name: Install Android NDK
+        run: sdkmanager "ndk;27.3.13750724"
+      - name: Checkout Node mobile build recipe
+        uses: actions/checkout@v4
+        with:
+          repository: fogtape/nodejs-mobile
+          ref: recipe
+          path: node-mobile
+      - name: Materialize pinned Node source
+        working-directory: node-mobile
+        run: scripts/prepare.sh
+      - name: Build Node 24 for Android arm64
+        working-directory: node-mobile/out
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+        run: |
+          ./tools/android_build.sh "$ANDROID_HOME/ndk/27.3.13750724" 24 arm64
+      - name: Upload embedded Node runtime library
+        uses: actions/upload-artifact@v4
+        with:
+          name: node24-android-arm64-libnode
+          path: |
+            node-mobile/out/out_android/arm64-v8a/libnode.so
+            node-mobile/out/out_android/headers
+          if-no-files-found: error
+          retention-days: 7
