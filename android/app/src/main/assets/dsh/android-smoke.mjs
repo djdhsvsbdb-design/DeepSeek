@@ -18,6 +18,18 @@ export async function runAndroidSmokeChecks() {
     const digest = createHash('sha256').update(actual).digest('hex')
     if (digest.length !== 64) throw new Error('Node crypto SHA-256 check failed.')
     if (typeof AndroidAgentCore !== 'function') throw new Error('Android agent core module failed to load')
+    const memory = new Map()
+    const sessions = {
+      async create() { const value = { id: 'smoke', events: [] }; memory.set(value.id, value); return value },
+      async open(id) { return memory.get(id) ?? null },
+      async append(id, event) { const value = memory.get(id); const item = { ...event, seq: value.events.length }; value.events.push(item); return item },
+    }
+    const tools = { async describe() { return [] }, async execute() { throw new Error('No tools expected in smoke test') } }
+    const model = { async complete() { return { content: 'android-agent-ok', finishReason: 'stop' } } }
+    const core = new AndroidAgentCore({ sessions, model, tools })
+    await core.createSession()
+    const result = await core.run('smoke', 'ping')
+    if (result.answer !== 'android-agent-ok' || result.steps !== 1) throw new Error('Android agent turn smoke test failed')
     return { filesystem: true, crypto: true, agentCore: true, node: process.version, arch: process.arch }
   } finally {
     await rm(root, { recursive: true, force: true })
