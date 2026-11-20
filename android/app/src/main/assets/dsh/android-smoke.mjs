@@ -24,9 +24,9 @@ export async function runAndroidSmokeChecks() {
     try {
       globalThis.fetch = async () => new Response(new ReadableStream({
         start(controller) {
-          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"llm-"},"finish_reason":null}]}\\n\\n'));
-          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"adapter-ok"},"finish_reason":"stop"}]}\\n\\n'));
-          controller.enqueue(new TextEncoder().encode('data: [DONE]\\n\\n'));
+          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"llm-"},"finish_reason":null}]}\n\n'));
+          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"adapter-ok"},"finish_reason":"stop"}]}\n\n'));
+          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
           controller.close();
         },
       }), { status: 200, headers: { 'content-type': 'text/event-stream' } });
