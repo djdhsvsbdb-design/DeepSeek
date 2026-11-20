@@ -1,33 +1,19 @@
-# DSH Mobile (initial Android client scaffold)
+# DSH Android Port (in progress)
 
-This branch adds an Android APK build scaffold and a WebView client for an existing DeepSeek Harness web server.
+This branch is the native Android port work, not the old WebView server wrapper.
 
-**Important:** this is not yet a standalone/on-device DeepSeek Harness port. The app connects to a DSH server URL that you enter in the app. It does not bundle the Node runtime or execute the agent locally on Android.
+## Current implemented slice
 
-## Build APK on GitHub
+- Android Java UI with a button to launch the embedded Node process.
+- JNI bridge calling Node's `node::Start()`.
+- App-private `HOME`, `TMPDIR`, and portable Node compile-cache paths.
+- A packaged smoke script to print Node version and architecture.
+- GitHub Actions workflow that builds the pinned Node 24 mobile runtime for arm64, stages `libnode.so` and headers, and builds a debug APK.
 
-1. Open the repository's **Actions** tab.
-2. Select **Android APK**.
-3. Press **Run workflow** (or push a change to this branch to trigger it).
-4. Download the artifact named `deepseek-harness-android-debug` from the completed run.
+## Build
 
-The APK is debug-signed and intended for testing.
+Use GitHub Actions workflow **Android Node Runtime** on branch `android-runtime-port`. The workflow is configured to build the Node mobile source from its recipe, package the runtime in an arm64 APK, and publish an artifact after a successful build.
 
-## Build locally
+## Important status
 
-Requires JDK 17 and Gradle 8.7:
-
-```sh
-gradle -p android assembleDebug
-```
-
-Output: `android/app/build/outputs/apk/debug/app-debug.apk`
-
-## Current limitations
-
-- Requires a reachable DSH web server.
-- No embedded Node.js runtime yet.
-- No local agent process, terminal, file tools, or offline engine.
-- WebView JavaScript is enabled because the DSH web interface needs it; file/content access is disabled.
-
-The next engineering phase for a standalone Android port is embedding a compatible Node runtime and packaging the DSH server and dependencies. That is substantially more than a WebView wrapper.
+**This is not yet a full Harness port.** The current app only attempts to start embedded Node with a smoke script. The Harness workspace and its dependency bundle have not yet been packaged into the app; profile/module compatibility and runtime smoke verification are still pending. A successful APK build alone is not proof that the agent works.
