@@ -17,6 +17,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends Activity {
     private TextView status;
     private TextView log;
+    private Button launchButton;
+    private boolean runtimeStarted = false;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     static { System.loadLibrary("nodebridge"); }
@@ -60,10 +62,10 @@ public class MainActivity extends Activity {
         status.setPadding(0, 24, 0, 24);
         root.addView(status);
 
-        Button launch = new Button(this);
-        launch.setText("Start embedded Node");
-        root.addView(launch);
-        launch.setOnClickListener(v -> launchRuntime());
+        launchButton = new Button(this);
+        launchButton.setText("Start embedded Node");
+        root.addView(launchButton);
+        launchButton.setOnClickListener(v -> launchRuntime());
 
         ScrollView scroll = new ScrollView(this);
         log = new TextView(this);
@@ -76,6 +78,9 @@ public class MainActivity extends Activity {
     }
 
     private void launchRuntime() {
+        if (runtimeStarted) return;
+        runtimeStarted = true;
+        if (launchButton != null) launchButton.setEnabled(false);
         File script = new File(getFilesDir(), "dsh/smoke.js");
         if (!script.exists()) {
             status.setText("Runtime test script is missing");
@@ -84,10 +89,20 @@ public class MainActivity extends Activity {
         status.setText("Node starting…");
         log.append("Starting bundled Node runtime…\n");
         executor.execute(() -> {
-            int code = startNode(script.getAbsolutePath(),
-                    new File(getFilesDir(), "dsh").getAbsolutePath(),
-                    new File(getCacheDir(), "node").getAbsolutePath());
-            runOnUiThread(() -> status.setText("Node exited · code " + code));
+            int code;
+            try {
+                code = startNode(script.getAbsolutePath(),
+                        new File(getFilesDir(), "dsh").getAbsolutePath(),
+                        new File(getCacheDir(), "node").getAbsolutePath());
+            } catch (Throwable error) {
+                runOnUiThread(() -> {
+                    status.setText("Node startup failed");
+                    log.append("Native runtime startup error: " + error.getMessage() + "\\n");
+                });
+                return;
+            }
+            final int exitCode = code;
+            runOnUiThread(() -> status.setText("Node exited · code " + exitCode));
         });
     }
 
