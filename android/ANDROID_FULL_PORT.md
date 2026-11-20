@@ -11,11 +11,11 @@ Ship a native Android shell and embedded Node runtime, package the Harness's sup
 - [x] Native Android project and embedded Node bridge scaffold.
 - [x] CI workflow for Android arm64 debug APK.
 - [ ] Replace the smoke script with a packaged DSH profile entry point.
-- [ ] Build and stage the Harness JS dependency closure and official bundles into app assets.
+- [ ] Build and stage the Harness JS dependency closure and official bundles into app assets. (Frontend-only staging is now in CI; backend dependency bundling remains pending.)
 - [ ] Add Android app-private filesystem adapter and persistent workspace/session storage.
 - [ ] Add mobile-safe capability profile; omit unsupported subprocess/PTY, desktop, and native-only tools instead of exposing nonfunctional actions.
 - [ ] Adapt app startup, profile configuration, provider/model settings and secrets storage.
-- [ ] Package the existing DSH client frontend into local app assets and connect it to the embedded runtime (local-only hybrid WebView; no remote server wrapper).
+- [x] Package the existing DSH client frontend into local app assets in CI (local APK assets only; it is not yet connected to an agent backend).
 - [ ] Add log/error reporting and cancellation/foreground lifecycle handling.
 - [ ] Add CI smoke tests that start a packaged profile and verify an actual agent response, not just a Node version.
 - [ ] Test on a physical arm64 device, memory pressure, offline startup, and app restarts.
