@@ -31,10 +31,9 @@ public class MainActivity extends Activity {
         home.mkdirs();
         cache.mkdirs();
         try {
-            File smoke = new File(home, "smoke.js");
-            if (!smoke.exists()) {
-                try (InputStream in = getAssets().open("dsh/smoke.js");
-                     FileOutputStream out = new FileOutputStream(smoke)) {
+            File entry = new File(home, "android-entry.mjs");
+            try (InputStream in = getAssets().open("dsh/android-entry.mjs");
+                 FileOutputStream out = new FileOutputStream(entry)) {
                     byte[] buffer = new byte[4096];
                     int count;
                     while ((count = in.read(buffer)) > 0) out.write(buffer, 0, count);
@@ -57,13 +56,13 @@ public class MainActivity extends Activity {
         root.addView(heading);
 
         status = new TextView(this);
-        status.setText("Embedded Node runtime · Ready");
+        status.setText("Embedded Node · DSH profile launcher");
         status.setTextColor(Color.rgb(130, 210, 160));
         status.setPadding(0, 24, 0, 24);
         root.addView(status);
 
         launchButton = new Button(this);
-        launchButton.setText("Start embedded Node");
+        launchButton.setText("Start DSH agent");
         root.addView(launchButton);
         launchButton.setOnClickListener(v -> launchRuntime());
 
@@ -81,7 +80,7 @@ public class MainActivity extends Activity {
         if (runtimeStarted) return;
         runtimeStarted = true;
         if (launchButton != null) launchButton.setEnabled(false);
-        File script = new File(getFilesDir(), "dsh/smoke.js");
+        File script = new File(getFilesDir(), "dsh/android-entry.mjs");
         if (!script.exists()) {
             status.setText("Runtime test script is missing");
             return;
