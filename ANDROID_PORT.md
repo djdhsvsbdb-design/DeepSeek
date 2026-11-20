@@ -9,7 +9,8 @@ This branch is the Android-port work branch. The previous `android-github-build`
 - The Harness workspace requires Node.js `>=24.9.0` (root `package.json`).
 - The CLI is a profile launcher and expects the installed application/runtime packages, not a generic Node script.
 - The Android scaffold currently only loads a remote server URL in a WebView; that behavior is not the target.
-- The historical `nodejs-mobile/nodejs-mobile` releases surfaced in research are Node 18.20.4 / 18.17.x. That runtime line is too old for Harness's declared Node 24.9 minimum and cannot be used as-is.
+- Historical `nodejs-mobile/nodejs-mobile` releases surfaced in research are Node 18.x, too old for the declared Node 24.9 minimum.
+- A separate community mobile Node 24 build recipe exists, but its repository is small, has a non-standard `NOASSERTION` license metadata field, and no GitHub Releases entry found during this check. Do not bundle it until source provenance, patches, artifacts, license obligations, and runtime compatibility have been audited.
 - Android has restrictions around process creation and native addons. Harness packages that depend on subprocesses, native modules, filesystem access, or desktop-specific behavior need explicit porting decisions and tests.
 
 ## Target architecture
@@ -28,4 +29,6 @@ The port is **not considered functional** until an installed APK starts the bund
 ## Current work
 
 - Created branch `android-runtime-port` from `android-github-build`.
+- Audited the old mobile Node releases: Node 18.x is below Harness's Node 24.9 minimum.
+- Identified a community Node 24 Android build recipe as a possible candidate, but provenance and license require checking before integration.
 - No runtime integration or APK test has been completed yet.
