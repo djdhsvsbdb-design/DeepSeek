@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { randomUUID, createHash } from 'node:crypto'
 import { AndroidAgentCore } from './android-agent-core.mjs'
+import { createOpenAICompatibleModel } from './android-llm-openai-compatible.mjs'
 
 export async function runAndroidSmokeChecks() {
   const root = await mkdtemp(join(tmpdir(), 'dsh-android-'))
@@ -18,6 +19,24 @@ export async function runAndroidSmokeChecks() {
     const digest = createHash('sha256').update(actual).digest('hex')
     if (digest.length !== 64) throw new Error('Node crypto SHA-256 check failed.')
     if (typeof AndroidAgentCore !== 'function') throw new Error('Android agent core module failed to load')
+    if (typeof createOpenAICompatibleModel !== 'function') throw new Error('Android LLM adapter module failed to load')
+    const originalFetch = globalThis.fetch
+    try {
+      globalThis.fetch = async () => new Response(new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"llm-"},"finish_reason":null}]}\\n\\n'));
+          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"adapter-ok"},"finish_reason":"stop"}]}\\n\\n'));
+          controller.enqueue(new TextEncoder().encode('data: [DONE]\\n\\n'));
+          controller.close();
+        },
+      }), { status: 200, headers: { 'content-type': 'text/event-stream' } });
+      const adapter = createOpenAICompatibleModel({ apiKey: 'smoke-key', model: 'smoke-model' });
+      let streamed = '';
+      const response = await adapter.complete({ messages: [{ role: 'user', content: 'ping' }], onChunk: chunk => { streamed += chunk.text ?? '' } });
+      if (response.content !== 'llm-adapter-ok' || streamed !== response.content) throw new Error('LLM streaming adapter smoke test failed');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
     const memory = new Map()
     const sessions = {
       async create() { const value = { id: 'smoke', events: [] }; memory.set(value.id, value); return value },
