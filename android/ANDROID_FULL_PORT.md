@@ -23,3 +23,15 @@ Ship a native Android shell and embedded Node runtime, package the Harness's sup
 ## Acceptance gate
 
 An Android build is not considered a completed port until the APK launches the packaged Harness, loads the mobile profile, persists settings and sessions, and completes a real model turn on-device. Features that require desktop or unsupported OS capabilities must be explicitly disabled or adapted.
+
+
+## Android agent entry-point progress
+
+- [x] Add an Android-specific ESM carrier entry that imports the built `@deepseek-ai/dsh` installed CLI and requests the shipped `web` profile.
+- [x] Change the Android launcher to invoke that entry instead of the Node smoke script.
+- [ ] Build and stage the complete production dependency closure under `filesDir/dsh/runtime/node_modules`.
+- [ ] Adapt the Web profile host/server lifecycle to Android and connect the local frontend to it.
+- [ ] Audit and replace desktop-only filesystem, subprocess, terminal, sandbox, and native-addon capabilities.
+- [ ] Verify a real provider-backed agent turn on arm64 Android.
+
+The carrier intentionally exits with a clear diagnostic when the packaged CLI is absent. It does not silently claim that the agent started. The current APK workflow still does not stage the complete CLI installation, so this is an entry-point integration, not a completed agent port.
