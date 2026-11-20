@@ -1,6 +1,6 @@
 # Android Port: Runtime Migration
 
-Status: **port work started; runtime not integrated yet**.
+Status: **embedded runtime bridge scaffold implemented; CI build and device execution not yet verified**.
 
 This branch is the Android-port work branch. The previous `android-github-build` branch remains an APK wrapper proof-of-concept and must not be presented as a native Harness port.
 
@@ -31,4 +31,6 @@ The port is **not considered functional** until an installed APK starts the bund
 - Created branch `android-runtime-port` from `android-github-build`.
 - Audited the old mobile Node releases: Node 18.x is below Harness's Node 24.9 minimum.
 - Identified a community Node 24 Android build recipe as a possible candidate, but provenance and license require checking before integration.
-- No runtime integration or APK test has been completed yet.
+- Implemented Java launcher UI, JNI bridge calling `node::Start()`, and app-private environment paths.
+- Added Node 24 arm64 build-and-package workflow. It still must complete successfully before this is considered verified.
+- Harness packages/profile are not bundled yet; agent execution remains unimplemented.
