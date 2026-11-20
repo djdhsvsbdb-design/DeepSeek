@@ -36,8 +36,8 @@ export class AndroidSessionRegistry {
   async list() { return [...this.#sessions.values()].map(({ id, createdAt, updatedAt, metadata }) => ({ id, createdAt, updatedAt, metadata })); }
   async #locked(id, fn) {
     const prior = this.#locks.get(id) ?? Promise.resolve();
-    const next = prior.then(fn, fn); this.#locks.set(id, next.catch(() => {}));
-    try { return await next; } finally { if (this.#locks.get(id) === next) this.#locks.delete(id); }
+    const next = prior.then(fn, fn); const settled = next.then(() => undefined, () => undefined); this.#locks.set(id, settled);
+    try { return await next; } finally { if (this.#locks.get(id) === settled) this.#locks.delete(id); }
   }
   async #persist(session) {
     const file = this.#file(session.id); await mkdir(dirname(file), { recursive: true });
