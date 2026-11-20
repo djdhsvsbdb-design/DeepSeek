@@ -44,12 +44,17 @@ jobs:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
         run: |
           ./tools/android_build.sh "$ANDROID_HOME/ndk/27.3.13750724" 24 arm64
-      - name: Upload embedded Node runtime library
-        uses: actions/upload-artifact@v4
+      - name: Stage runtime for Android JNI
+        run: |
+          mkdir -p android/app/src/main/jniLibs/arm64-v8a
+          mkdir -p android/app/src/main/cpp/node_headers
+          cp node-mobile/out/out_android/arm64-v8a/libnode.so android/app/src/main/jniLibs/arm64-v8a/
+          cp -R node-mobile/out/out_android/libnode/include/node/. android/app/src/main/cpp/node_headers/
+      - name: Build APK with embedded Node
+        run: gradle -p android assembleDebug
+      - uses: actions/upload-artifact@v4
         with:
-          name: node24-android-arm64-libnode
-          path: |
-            node-mobile/out/out_android/arm64-v8a/libnode.so
-            node-mobile/out/out_android/headers
+          name: dsh-android-node24-arm64-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
