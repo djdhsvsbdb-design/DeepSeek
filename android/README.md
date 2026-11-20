@@ -17,3 +17,8 @@ Use GitHub Actions workflow **Android Node Runtime** on branch `android-runtime-
 ## Important status
 
 **This is not yet a full Harness port.** The current app only attempts to start embedded Node with a smoke script. The Harness workspace and its dependency bundle have not yet been packaged into the app; profile/module compatibility and runtime smoke verification are still pending. A successful APK build alone is not proof that the agent works.
+
+
+## Frontend packaging progress
+
+The Android CI workflow now installs the pnpm workspace, builds `@deepseek-ai/dsh-web-frontend`, and stages its `dist/` files into `android/app/src/main/assets/dsh/web` using `android/scripts/stage-web-assets.sh`. These assets are packaged locally in the APK. The frontend is not yet wired to a running Harness backend; the current native launcher still runs the Node smoke script.
