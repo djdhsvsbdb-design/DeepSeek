@@ -6,6 +6,10 @@ on:
     paths:
       - ".github/workflows/android-node-runtime.yml"
       - "android/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
       - "ANDROID_PORT.md"
   workflow_dispatch:
 
@@ -17,6 +21,20 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "11.28.5"
+      - name: Install Harness workspace dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Harness web frontend
+        run: pnpm --filter @deepseek-ai/dsh-web-frontend build
+      - name: Stage frontend into Android assets
+        run: bash android/scripts/stage-web-assets.sh
       - name: Install build dependencies
         run: |
           sudo apt-get update
