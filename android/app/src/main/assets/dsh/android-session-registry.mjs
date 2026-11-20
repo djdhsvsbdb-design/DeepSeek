@@ -28,7 +28,7 @@ export class AndroidSessionRegistry {
     return this.#locked(id, async () => {
       const session = await this.open(id);
       if (!session) throw new Error('Session not found');
-      const item = { seq: session.events.length, at: Date.now(), ...event };
+      const item = { ...event, seq: session.events.length, at: Date.now() };
       session.events.push(item); session.updatedAt = Date.now();
       await this.#persist(session); return item;
     });
